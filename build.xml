@@ -1,0 +1,66 @@
+<project name="hobo" default="tserver" basedir=".">
+  <description>Hobo Server</description>
+
+  <property name="src" location="src" />
+  <property name="gen" location="testserver/gen-java" />
+  <property name="build" location="build/classes" />
+  <property name="junit" location="build/classes" />
+  <property name="testdir" location="testserver" />
+  <property name="testserver" location="testserver" />
+
+  <path id="classpath">
+    <fileset dir="/usr/local/lib/" includes="libthrift-0.8.0.jar" />
+    <fileset dir="/usr/local/lib/" includes="slf4j-api-1.5.8.jar"/>
+    <fileset dir="/usr/local/lib/" includes="slf4j-log4j12-1.5.8.jar"/>
+    <fileset dir="/usr/local/lib/" includes="log4j-1.2.14.jar"/>
+    <fileset dir="/usr/local/lib/" includes="junit-4.4.jar"/>
+  </path>
+
+  <path id="test.classpath">
+    <path refid="classpath" />
+    <fileset dir="/usr/local/lib/" includes="junit-4.4.jar"/>
+    <fileset dir="${build}" includes="junit-4.4.jar"/>
+  </path>
+
+  <path id="junit.classpath">
+    <path refid="test.classpath" />
+    <fileset dir="build" includes="hobo.jar"/>
+    <pathelement path="build/classes" />
+  </path>
+
+  <target name="init">
+    <tstamp />
+    <mkdir dir="${build}"/>
+  </target>
+
+  <target name="thriftcode" depends="init">
+    <exec executable="thrift"> <arg value="-o"/> <arg value="testserver/"/> <arg value="--gen"/> <arg value="java"/> <arg value="testserver/test.thrift"/>  </exec>
+    <exec executable="./scalyrize_thrift_code.py">  <arg value="testserver/gen-java/com/scalyr/thrift/gen/ScalyrDemo.java"/>   </exec>
+  </target>
+
+  <target name="compile" depends="init">
+    <javac srcdir="${src}" destdir="${build}" classpathref="classpath" >
+      <compilerarg value="-Xlint:deprecation"/>
+    </javac>
+  </target>
+
+  <!-- JAR -->
+  <target name="jar" depends="compile">
+    <jar jarfile="build/scalyr_thrift.jar" basedir="${build}"/>
+  </target>
+
+  <!-- Benchmarks -->
+  <target name="compile-tests" depends="init,thriftcode,jar">
+    <javac srcdir="${testserver}" destdir="${build}" classpathref="test.classpath" debug="on">
+      <compilerarg value="-Xlint:deprecation"/>
+    </javac>
+    <delete dir="${gen}"/>
+  </target>
+
+  <!-- Clean -->
+  <target name="clean">
+    <delete dir="${build}" />
+    <delete dir="${gen}"/>
+  </target>
+
+</project>
