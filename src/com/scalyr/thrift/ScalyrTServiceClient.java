@@ -25,7 +25,6 @@ public abstract class ScalyrTServiceClient extends TServiceClient{
     }
 
     protected void receiveBase(ScalyrTaggedTBase result, String methodName) throws TException {
-	System.out.println("Client: received " + result.getMessageId());
         TMessage msg = iprot_.readMessageBegin();
         if (msg.type == TMessageType.EXCEPTION) {
             TApplicationException x = TApplicationException.read(iprot_);
@@ -37,6 +36,7 @@ public abstract class ScalyrTServiceClient extends TServiceClient{
         }
         result.read(iprot_);
         iprot_.readMessageEnd();
+	System.out.println("Client: received " + result.getMessageId());
     }
 
 }
